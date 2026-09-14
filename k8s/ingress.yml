@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: codespace-ingress
+  # annotations:
+  #   nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  labels:
+    app.kubernetes.io/name: codespace-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  # 1. API routes (targets sandbox service)
+  - http:
+      paths:
+      - pathType: Prefix
+        path: /api/sandbox
+        backend:
+          service:
+            name: sandbox-service
+            port: 
+              number: 80
+
+  # 2. Dynamic preview wildcard host
+  - host: "*.preview.localhost"
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: router-service
+            port: 
+              number: 80
+
+  # 3. Dynamic agent wildcard host
+  - host: "*.agent.localhost"
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: router-service
+            port: 
+              number: 80
