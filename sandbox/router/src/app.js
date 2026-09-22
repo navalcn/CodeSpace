@@ -21,24 +21,24 @@ const agentProxies = {}
 
 function getProxy(sandboxId) {
     const target = `http://sandbox-service-${sandboxId}`;
-    if (!proxies[ sandboxId ]) {
-        proxies[ sandboxId ] = createProxyMiddleware({
+    if (!proxies[sandboxId]) {
+        proxies[sandboxId] = createProxyMiddleware({
             target,
             changeOrigin: true,
         });
     }
-    return proxies[ sandboxId ];
+    return proxies[sandboxId];
 }
 
 function getAgentProxy(sandboxId) {
     const target = `http://sandbox-service-${sandboxId}:3000`;
-    if (!agentProxies[ sandboxId ]) {
-        agentProxies[ sandboxId ] = createProxyMiddleware({
+    if (!agentProxies[sandboxId]) {
+        agentProxies[sandboxId] = createProxyMiddleware({
             target,
             changeOrigin: true,
         });
     }
-    return agentProxies[ sandboxId ];
+    return agentProxies[sandboxId];
 }
 
 // Single httpxy proxy server for all WebSocket upgrades
@@ -50,13 +50,13 @@ wsProxy.on('error', (err, req, socket) => {
 
 app.use(async (req, res, next) => {
     const host = req.headers.host;
-    const sandboxId = host.split('.')[ 0 ];
+    const sandboxId = host.split('.')[0];
 
     await refreshTTL(sandboxId);
 
-    if (host.split('.')[ 1 ] === 'agent') {
+    if (host.split('.')[1] === 'agent') {
         return getAgentProxy(sandboxId)(req, res, next);
-    } else if (host.split('.')[ 1 ] === 'preview') {
+    } else if (host.split('.')[1] === 'preview') {
         return getProxy(sandboxId)(req, res, next);
     }
 });
@@ -72,8 +72,8 @@ server.on('upgrade', (req, socket, head) => {
     // during the active piped session (after ws() Promise has resolved)
     socket.on('error', () => socket.destroy());
 
-    const sandboxId = host.split('.')[ 0 ];
-    const type = host.split('.')[ 1 ];
+    const sandboxId = host.split('.')[0];
+    const type = host.split('.')[1];
 
     console.log(`WS upgrade request: ${host}, sandboxId: ${sandboxId}, type: ${type}`);
 
