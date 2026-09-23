@@ -10,19 +10,19 @@ export async function createPod(sandboxId, projectId) {
                 sandboxId: sandboxId
             }
         },
-        spec: { 
+        spec: {
             volumes: [
                 {
                     name: 'workspace-volume',
                     emptyDir: {}
                 }
             ],
-            initContainers:[
+            initContainers: [
                 {
-                    name:'init-container',
-                    image:'template',
-                    imagePullPolicy:'IfNotPresent',
-                    command:['sh','-c','cp -r /workspace/. /seed/'],
+                    name: 'init-container',
+                    image: "template",
+                    imagePullPolicy: "IfNotPresent",
+                    command: [ 'sh', '-c', 'cp -r /workspace/. /seed/' ],
                     volumeMounts: [
                         {
                             name: 'workspace-volume',
@@ -31,13 +31,12 @@ export async function createPod(sandboxId, projectId) {
                     ]
                 }
             ],
-
             containers: [
                 {
                     image: "template",
                     imagePullPolicy: "IfNotPresent",
                     name: 'sandbox-container',
-                    ports: [{ containerPort: 5173, name: "http" }],
+                    ports: [ { containerPort: 5173, name: "http" } ],
                     resources: {
                         limits: { cpu: "500m", memory: "1Gi" },
                         requests: { cpu: "250m", memory: "500Mi" }
@@ -53,7 +52,7 @@ export async function createPod(sandboxId, projectId) {
                     image: "agent",
                     imagePullPolicy: "IfNotPresent",
                     name: 'agent-container',
-                    ports: [{ containerPort: 3000, name: "http" }],
+                    ports: [ { containerPort: 3000, name: "http" } ],
                     resources: {
                         limits: { cpu: "500m", memory: "1Gi" },
                         requests: { cpu: "250m", memory: "500Mi" }
@@ -64,8 +63,57 @@ export async function createPod(sandboxId, projectId) {
                             mountPath: '/workspace'
                         }
                     ]
-                }
+                },
+                {
+                    image: "sync-agent",
+                    imagePullPolicy: "IfNotPresent",
+                    name: 'sync-agent-container',
+                    ports: [ { containerPort: 4000, name: "http" } ],
+                    resources: {
+                        limits: { cpu: "500m", memory: "1Gi" },
+                        requests: { cpu: "250m", memory: "500Mi" }
+                    },
+                    volumeMounts: [
+                        {
+                            name: 'workspace-volume',
+                            mountPath: '/workspace'
+                        }
+                    ],
+                    env: [
+                        {
+                            name: "PROJECT_ID",
+                            value: projectId
+                        },
+                        {
+                            name: "AWS_ACCESS_KEY_ID",
+                            valueFrom: {
+                                secretKeyRef: {
+                                    name: "aws",
+                                    key: "AWS_ACCESS_KEY_ID"
+                                }
+                            }
+                        },
+                        {
+                            name: "AWS_SECRET_ACCESS_KEY",
+                            valueFrom: {
+                                secretKeyRef: {
+                                    name: "aws",
+                                    key: "AWS_SECRET_ACCESS_KEY"
+                                }
+                            }
 
+                        },
+                        {
+                            name: "AWS_REGION",
+                            valueFrom: {
+                                secretKeyRef: {
+                                    name: "aws",
+                                    key: "AWS_REGION"
+                                }
+                            }
+                        }
+                    ]
+                }
             ]
         }
     }
